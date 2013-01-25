@@ -9,6 +9,8 @@ use Thread::Semaphore;
 my %children;
 
 my $max_fork = 4;
+my $tasks_done = 0;
+my $start_count = 0;
 
 my $s = Thread::Semaphore->new ($max_fork);
 my $boss_lock = Thread::Semaphore->new (0);
@@ -19,9 +21,10 @@ sub sig_handler {
 		next unless defined $children{$pid};
 		next if ( $children{$pid} == 0 );
 
+		++$tasks_done;
 		delete $children{$pid};
 
-		if ( !%children ) {
+		if ( (!%children) && ($tasks_done == $start_count) ) {
 			$boss_lock->up ();
 		} else {
 			$s->up ();
@@ -33,7 +36,8 @@ sub main {
 
 	local $SIG{CHLD} = \&sig_handler;
 
-	my $tasks = 100;
+	my $tasks = 10;
+	$start_count = $tasks;
 
 	for ( ; $tasks > 0; --$tasks ) {
 
@@ -55,6 +59,11 @@ sub main {
 	}
 
 	$boss_lock->down ();
+
+	foreach my $pid (keys %children) {
+		next if (waitpid ($pid, 0) < 0);
+		delete $children{$pid};
+	}
 }
 
 main ();
