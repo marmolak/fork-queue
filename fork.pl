@@ -49,7 +49,7 @@ sub main {
 		if ( $pid > 0 ) {
 			# do nothing.
 		} elsif ( $pid == 0 ) {
-			undef $children{$pid};
+			undef %children;
 
 			sleep (int (rand (2) + 5));
 			exit (0);
