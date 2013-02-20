@@ -44,10 +44,10 @@ sub main {
 		$s->down ();
 
 		my $pid = fork ();
+		$children{$pid} = 1;
+
 		if ( $pid > 0 ) {
-
-			$children{$pid} = 1;
-
+			# do nothing.
 		} elsif ( $pid == 0 ) {
 			$children{$pid} = 0;
 
